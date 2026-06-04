@@ -77,8 +77,8 @@
       padding: 1.4rem 7%;
       border-bottom: 1px solid var(--border);
       background: var(--nav-bg);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .nav-logo {
@@ -104,7 +104,7 @@
       color: var(--gold);
       font-size: 1.15rem;
       animation: spin 8s linear infinite;
-      filter: drop-shadow(0 0 8px var(--gold));
+      /* drop-shadow removed for perf */
     }
     .nav-logo::after {
       content: '';
@@ -910,7 +910,8 @@
 
     <!-- 23 Prems -->
     <div class="card reveal" style="transition-delay:0.08s">
-      <div class="card-pill">💎 Best Value</div>
+      <div class="card-pill" style="background:linear-gradient(135deg,#e67e22,#f39c12);color:#07070c;">📋 Booked</div>
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:10;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span style="font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:#f39c12;letter-spacing:0.15em;border:2px solid #f39c12;padding:0.4rem 1.2rem;">BOOKED</span></div>
       <div class="card-thumb">
         <div class="card-thumb-bg"></div>
         <div class="card-glow"></div>
@@ -961,7 +962,8 @@
 
     <!-- ASC 1 -->
     <div class="card reveal" style="transition-delay:0.24s">
-      <div class="card-pill">⚡ ASC 1</div>
+      <div class="card-pill" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;">❌ Sold Out</div>
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);z-index:10;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span style="font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:#e74c3c;letter-spacing:0.15em;border:2px solid #e74c3c;padding:0.4rem 1.2rem;">SOLD OUT</span></div>
       <div class="card-thumb">
         <div class="card-thumb-bg"></div>
         <div class="card-glow"></div>
@@ -1249,7 +1251,7 @@
   resize();
   window.addEventListener('resize', resize);
 
-  const N = 100;
+  const N = 40;
   const pts = Array.from({ length: N }, () => ({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
@@ -1258,19 +1260,33 @@
     opacity: Math.random() * 0.45 + 0.05,
   }));
 
-  function drawParticles() {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let rafId = null;
+  let lastT = 0;
+  const FRAME_MS = 1000 / 30; // cap at ~30fps, plenty for ambient particles
+  function drawParticles(t) {
+    rafId = requestAnimationFrame(drawParticles);
+    if (t - lastT < FRAME_MS) return;
+    lastT = t;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    pts.forEach(p => {
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(179,136,255,${p.opacity})`;
       ctx.fill();
       p.y -= p.speed;
       if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
-    });
-    requestAnimationFrame(drawParticles);
+    }
   }
-  drawParticles();
+  function startParticles() { if (!rafId && !reduceMotion) rafId = requestAnimationFrame(drawParticles); }
+  function stopParticles()  { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
+  document.addEventListener('visibilitychange', () => document.hidden ? stopParticles() : startParticles());
+  if (reduceMotion) {
+    canvas.style.display = 'none';
+  } else {
+    startParticles();
+  }
 
   /* ── Scroll reveal ── */
   const reveals = document.querySelectorAll('.reveal');
