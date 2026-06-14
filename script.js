@@ -1,4 +1,4 @@
-﻿  /* -- FAQ toggle -- */
+  /* -- FAQ toggle -- */
   function toggleFaq(btn) {
     btn.parentElement.classList.toggle('open');
   }
@@ -149,6 +149,19 @@
   (function(){
     var filterBtns = document.querySelectorAll('.filter-btn');
     var allCards   = document.querySelectorAll('.card');
+    
+    var urlParams = new URLSearchParams(window.location.search);
+    var sellerFilter = urlParams.get('seller');
+
+    // Hide cards that don't match the seller parameter initially
+    if (sellerFilter && allCards.length) {
+      allCards.forEach(function(card) {
+        if (card.dataset.seller !== sellerFilter) {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
     if (!filterBtns.length) return;
 
     filterBtns.forEach(function(btn) {
@@ -162,6 +175,7 @@
             var status     = card.dataset.status;
             var region     = card.dataset.region;
             var priceRange = card.dataset.price;
+            var seller     = card.dataset.seller;
             var show = false;
 
             if (f === 'all')            show = true;
@@ -171,6 +185,11 @@
             else if (f === 'under6k')   show = (priceRange === 'under3k' || priceRange === 'under6k') && status === 'available';
             else if (f === 'under10k')  show = (priceRange === 'under3k' || priceRange === 'under6k' || priceRange === 'under10k') && status === 'available';
             else if (f === 'above10k')  show = priceRange === 'above10k' && status === 'available';
+
+            // Respect URL seller param
+            if (sellerFilter && seller !== sellerFilter) {
+              show = false;
+            }
 
             card.classList.toggle('hidden', !show);
           });
