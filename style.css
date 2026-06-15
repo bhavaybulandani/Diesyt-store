@@ -39,8 +39,7 @@
 
     /* Promote heavy offscreen sections � browser skips paint/layout until near viewport */
     #listings, #why, #vouches, #cta, #faq, footer {
-      content-visibility: auto;
-      contain-intrinsic-size: 1px 800px;
+      /* content-visibility removed to fix IntersectionObserver scroll reveal */
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -828,7 +827,9 @@
 
       /* Mobile Card Fixes */
       .card-body { padding: 1.2rem; }
-      .card-buy { width: 100%; text-align: center; margin-top: 1rem; }
+      .card-foot { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+      .card-buy { width: 100%; text-align: center; margin-top: 0; }
+      .card-price { text-align: center; }
     }
   
 
