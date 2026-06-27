@@ -1,12 +1,89 @@
 <!DOCTYPE html>
-<html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'>
-<link rel='stylesheet' href='style.css'></head><body>
-<div class='bg'></div>
-<div id='eyes'><span class='eye'></span><span class='eye'></span></div>
-<div id='logo'>
-<h1>DIESYT</h1><p>STORE</p>
-<div id='status'>INITIALIZING...</div>
-<div class='bar'><div id='fill'></div></div>
-</div>
-<script src='script.js'></script>
-</body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DIESYT STORE</title>
+
+  <!-- Orbitron from Google Fonts — only dependency allowed (font asset) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════
+       LOADER SHELL
+       All visual layers stack via CSS absolute
+       ══════════════════════════════════════════════ -->
+  <div id="loader" role="status" aria-label="Loading DIESYT STORE">
+
+    <!-- Layer 0 ─ WebGL / Canvas smoke & particles -->
+    <canvas id="bgCanvas" aria-hidden="true"></canvas>
+
+    <!-- Layer 1 ─ Film grain overlay (Canvas) -->
+    <canvas id="grainCanvas" aria-hidden="true"></canvas>
+
+    <!-- Layer 2 ─ Vignette -->
+    <div id="vignette" aria-hidden="true"></div>
+
+    <!-- Layer 3 ─ Eyes (Scene 2) -->
+    <div id="eyesContainer" aria-hidden="true">
+      <canvas id="eyesCanvas"></canvas>
+    </div>
+
+    <!-- Layer 4 ─ Logo reveal (Scenes 3–4) -->
+    <div id="logoContainer" aria-hidden="true">
+      <div id="logoWrap">
+        <div id="logoMain">
+          <span class="letter" data-char="D">D</span>
+          <span class="letter" data-char="I">I</span>
+          <span class="letter" data-char="E">E</span>
+          <span class="letter" data-char="S">S</span>
+          <span class="letter" data-char="Y">Y</span>
+          <span class="letter" data-char="T">T</span>
+        </div>
+        <div id="logoSub">
+          <span class="sub-dash left-dash"></span>
+          <span id="storeText">STORE</span>
+          <span class="sub-dash right-dash"></span>
+        </div>
+        <!-- Scanner line drawn on top of logo -->
+        <div id="scanLine" aria-hidden="true"></div>
+        <!-- Bloom overlay for final glow burst -->
+        <div id="logoBloom" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- Layer 5 ─ Status / loading bar (Scene 5) -->
+    <div id="statusContainer" aria-hidden="true">
+      <div id="statusText">INITIALIZING...</div>
+      <div id="loadBarWrap">
+        <div id="loadBarTrack">
+          <div id="loadBarFill">
+            <div id="loadBarShine"></div>
+          </div>
+        </div>
+        <div id="loadPercent">0%</div>
+      </div>
+    </div>
+
+  </div><!-- /#loader -->
+
+  <!-- Homepage placeholder — loader fades out to reveal this -->
+  <div id="homepage" aria-hidden="true">
+    <div class="hp-center">
+      <div class="hp-logo">DIESYT STORE</div>
+      <p class="hp-sub">Your premium marketplace is ready.</p>
+    </div>
+  </div>
+
+  <!-- Scripts — order matters -->
+  <script src="particles.js"></script>
+  <script src="smoke.js"></script>
+  <script src="effects.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,14 +1,454 @@
-html,body{margin:0;height:100%;overflow:hidden;background:#06060b;font-family:Arial}
-.bg{position:fixed;inset:0;background:radial-gradient(circle,#281046,#06060b 70%);animation:zoom 10s forwards}
-.bg:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(168,85,247,.22),transparent 45%);filter:blur(55px);animation:smoke 6s ease-in-out infinite alternate}
-#eyes{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);display:flex;gap:110px}
-.eye{width:55px;height:14px;background:#a855f7;border-radius:50%;box-shadow:0 0 18px #a855f7,0 0 40px #a855f7;transform:skewX(-18deg);animation:pulse 1.6s infinite}
-#logo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
-h1{margin:0;font-size:clamp(60px,10vw,150px);letter-spacing:.18em;color:#fff;text-shadow:0 0 25px #a855f7}
-p{margin:0;color:#b987ff;letter-spacing:.8em}
-#status{margin-top:40px;color:#ddd;letter-spacing:.25em}
-.bar{margin-top:20px;width:min(450px,80vw);height:4px;background:#222;border-radius:999px;overflow:hidden}
-#fill{width:0;height:100%;background:#a855f7;box-shadow:0 0 20px #a855f7}
-@keyframes pulse{50%{transform:skewX(-18deg) scale(1.08);opacity:1}0%,100%{opacity:.55}}
-@keyframes smoke{to{transform:scale(1.08) translateY(-25px)}}
-@keyframes zoom{to{transform:scale(1.06)}}
+/* ═══════════════════════════════════════════════════════════
+   DIESYT STORE — CINEMATIC LOADER
+   style.css
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Reset & Root ───────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:          #07070B;
+  --purple-1:    #8A2BE2;
+  --purple-2:    #A855F7;
+  --purple-3:    #C084FC;
+  --purple-dark: #3B0764;
+  --white:       #FFFFFF;
+  --glow-sm:     0 0 8px  rgba(168,85,247,0.5);
+  --glow-md:     0 0 24px rgba(168,85,247,0.6);
+  --glow-lg:     0 0 60px rgba(168,85,247,0.5);
+  --glow-xl:     0 0 120px rgba(138,43,226,0.7);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Orbitron', sans-serif;
+  color: var(--white);
+}
+
+/* ── Loader shell ───────────────────────────────────────── */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+
+  /* GPU hint for the whole loader */
+  will-change: opacity;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#loader.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Background canvas (smoke + particles) ─────────────── */
+#bgCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+
+/* ── Film grain overlay canvas ──────────────────────────── */
+#grainCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* ── Radial vignette ────────────────────────────────────── */
+#vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    transparent 40%,
+    rgba(7, 7, 11, 0.55) 70%,
+    rgba(7, 7, 11, 0.95) 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Eyes container ─────────────────────────────────────── */
+#eyesContainer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+#eyesCanvas {
+  width: min(700px, 90vw);
+  height: min(280px, 36vw);
+  max-width: 100%;
+}
+
+/* ── Logo container ─────────────────────────────────────── */
+#logoContainer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+#logoWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.5vw, 18px);
+}
+
+/* ── Main logo letters ──────────────────────────────────── */
+#logoMain {
+  display: flex;
+  gap: clamp(2px, 0.6vw, 10px);
+  line-height: 1;
+}
+
+.letter {
+  display: inline-block;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(42px, 9.5vw, 128px);
+  letter-spacing: 0.05em;
+  color: var(--white);
+  opacity: 0;
+  transform: translateY(28px) scale(0.9);
+  will-change: transform, opacity, filter;
+  transition:
+    opacity     0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform   0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    filter      0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 0.55s ease;
+
+  /* Metallic letter gradient */
+  background: linear-gradient(
+    180deg,
+    #E8D5FF 0%,
+    #C084FC 25%,
+    #ffffff 45%,
+    #A855F7 65%,
+    #7C3AED 85%,
+    #4C1D95 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.letter.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: drop-shadow(0 0 14px rgba(168,85,247,0.8));
+}
+
+.letter.glitch {
+  animation: letterGlitch 0.15s steps(2) forwards;
+}
+
+/* ── Store sub-line ─────────────────────────────────────── */
+#logoSub {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.4vw, 18px);
+  opacity: 0;
+  transform: translateY(10px);
+  will-change: opacity, transform;
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#logoSub.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#storeText {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 400;
+  font-size: clamp(10px, 2vw, 26px);
+  letter-spacing: clamp(0.3em, 0.8vw, 0.7em);
+  color: var(--purple-2);
+  text-shadow: var(--glow-sm);
+}
+
+.sub-dash {
+  display: block;
+  height: 1px;
+  width: clamp(24px, 5vw, 60px);
+  background: linear-gradient(90deg, transparent, var(--purple-2), transparent);
+  box-shadow: 0 0 6px rgba(168,85,247,0.5);
+}
+
+/* ── Scanner line ───────────────────────────────────────── */
+#scanLine {
+  position: absolute;
+  top: 0;
+  left: -5%;
+  width: 110%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(168,85,247,0.1) 10%,
+    rgba(168,85,247,0.9) 50%,
+    rgba(192,132,252,1) 55%,
+    rgba(168,85,247,0.9) 60%,
+    rgba(168,85,247,0.1) 90%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 12px 2px rgba(168,85,247,0.6),
+    0 0 30px 4px rgba(138,43,226,0.3);
+  opacity: 0;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* ── Logo bloom burst ───────────────────────────────────── */
+#logoBloom {
+  position: absolute;
+  inset: -80px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(138,43,226,0.35) 0%,
+    rgba(138,43,226,0.15) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+/* ── Status / loading bar ───────────────────────────────── */
+#statusContainer {
+  position: absolute;
+  bottom: clamp(36px, 7vh, 80px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(240px, 55vw, 520px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 2vh, 20px);
+  opacity: 0;
+  will-change: opacity;
+  transition: opacity 0.6s ease;
+}
+
+#statusContainer.visible {
+  opacity: 1;
+}
+
+#statusText {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 400;
+  font-size: clamp(8px, 1.3vw, 13px);
+  letter-spacing: 0.25em;
+  color: var(--purple-3);
+  text-shadow: var(--glow-sm);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  white-space: nowrap;
+}
+
+#statusText.visible {
+  opacity: 1;
+}
+
+#loadBarWrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Glass track */
+#loadBarTrack {
+  width: 100%;
+  height: clamp(6px, 1.2vh, 10px);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(168,85,247,0.2);
+  box-shadow:
+    inset 0 1px 3px rgba(0,0,0,0.5),
+    0 0 12px rgba(138,43,226,0.15);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Filled portion */
+#loadBarFill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--purple-dark) 0%,
+    var(--purple-1)    40%,
+    var(--purple-2)    70%,
+    var(--purple-3)    100%
+  );
+  box-shadow:
+    0 0 10px rgba(168,85,247,0.8),
+    0 0 20px rgba(138,43,226,0.5);
+  will-change: width;
+  position: relative;
+  overflow: hidden;
+  transition: none; /* driven by JS rAF */
+}
+
+/* Moving shine inside bar */
+#loadBarShine {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.35),
+    transparent
+  );
+  animation: shineSlide 1.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+#loadPercent {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 400;
+  font-size: clamp(9px, 1.2vw, 12px);
+  letter-spacing: 0.15em;
+  color: rgba(192,132,252,0.7);
+}
+
+/* ── Homepage (revealed after loader) ───────────────────── */
+#homepage {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  will-change: opacity;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#homepage.visible {
+  opacity: 1;
+}
+
+.hp-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.hp-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(28px, 6vw, 72px);
+  letter-spacing: 0.12em;
+  background: linear-gradient(180deg, #E8D5FF 0%, #A855F7 50%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 32px rgba(168,85,247,0.6));
+}
+
+.hp-sub {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 400;
+  font-size: clamp(9px, 1.5vw, 14px);
+  letter-spacing: 0.3em;
+  color: rgba(192,132,252,0.6);
+}
+
+/* ══════════════════════════════════════════════════════════
+   KEYFRAMES
+   ══════════════════════════════════════════════════════════ */
+
+/* Shine sweep inside loading bar */
+@keyframes shineSlide {
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(300%); }
+}
+
+/* RGB glitch burst on letter reveal */
+@keyframes letterGlitch {
+  0%   {
+    text-shadow:
+      -3px 0 rgba(255,0,0,0.7),
+       3px 0 rgba(0,255,255,0.7);
+    filter: drop-shadow(0 0 18px rgba(168,85,247,1));
+  }
+  25%  {
+    text-shadow:
+       3px 0 rgba(255,0,0,0.7),
+      -3px 0 rgba(0,255,255,0.7);
+    filter: drop-shadow(0 0 4px rgba(168,85,247,0.3));
+  }
+  50%  {
+    text-shadow:
+      -2px 0 rgba(255,0,0,0.5),
+       2px 0 rgba(0,255,255,0.5);
+    filter: drop-shadow(0 0 22px rgba(168,85,247,0.9));
+  }
+  100% {
+    text-shadow: none;
+    filter: drop-shadow(0 0 14px rgba(168,85,247,0.8));
+  }
+}
+
+/* Pulse for logo at access granted */
+@keyframes logoPulse {
+  0%   { filter: drop-shadow(0 0 20px rgba(168,85,247,0.8)); }
+  50%  { filter: drop-shadow(0 0 60px rgba(192,132,252,1)); }
+  100% { filter: drop-shadow(0 0 30px rgba(168,85,247,0.9)); }
+}
+
+.logo-pulse {
+  animation: logoPulse 0.8s ease-in-out;
+}
+
+/* ── Reduced motion — respect OS preference ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
