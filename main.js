@@ -120,16 +120,19 @@ function resize() {
     if (ctx) ctx.scale(dpr, dpr);
   });
 
-  // eyesCanvas: intrinsic drawing resolution, CSS handles display size
-  const ew = Math.round(Math.min(700, w * 0.9));
-  const eh = Math.round(Math.min(280, w * 0.36));
-  eyesCanvas.width  = ew;
-  eyesCanvas.height = eh;
+  // eyesCanvas: full-viewport so massive demonic corona fills entire screen
+  const dprE = Math.min(window.devicePixelRatio || 1, 2);
+  eyesCanvas.width        = Math.round(w * dprE);
+  eyesCanvas.height       = Math.round(h * dprE);
+  eyesCanvas.style.width  = w + 'px';
+  eyesCanvas.style.height = h + 'px';
+  const eyeCtx = eyesCanvas.getContext('2d');
+  if (eyeCtx) { eyeCtx.setTransform(1,0,0,1,0,0); eyeCtx.scale(dprE, dprE); }
 
   if (particles) particles.resize(w, h);
   if (smoke)     smoke.resize(w, h);
   if (grain)     grain.resize(w, h);
-  if (eyes)      eyes.resize(ew, eh);
+  if (eyes)      eyes.resize(w, h);
 }
 
 /* ═══════════════════════════════════════════════════════════
